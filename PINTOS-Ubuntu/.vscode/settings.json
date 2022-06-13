@@ -1,0 +1,7 @@
+{
+    "C_Cpp.errorSquiggles": "Disabled",
+    "files.associations": {
+        "filesys.h": "c",
+        "page.h": "c"
+    }
+}
