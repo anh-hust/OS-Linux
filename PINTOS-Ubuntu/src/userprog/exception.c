@@ -8,13 +8,15 @@
 #include "threads/thread.h"
 #include "threads/vaddr.h"
 
+/* Additional code by student */
 #define MAX_STACK_SIZE 0x800000 // 3GB
-// #define VM
+#define VM
 
 #ifdef VM
 #include "vm/page.h"
 #include "vm/frame.h"
 #endif
+/*  End */
 
 /* Number of page faults processed. */
 static long long page_fault_cnt;
@@ -98,7 +100,7 @@ kill(struct intr_frame *f)
       printf("%s: dying due to interrupt %#04x (%s).\n",
              thread_name(), f->vec_no, intr_name(f->vec_no));
       intr_dump_frame(f);
-      exit(-1); // @ By student
+      exit(f->esp); // @ By student
       // thread_exit();
 
    case SEL_KCSEG:
@@ -114,7 +116,7 @@ kill(struct intr_frame *f)
          kernel. */
       printf("Interrupt %#04x (%s) in unknown segment %04x\n",
              f->vec_no, intr_name(f->vec_no), f->cs);
-      exit(-1); // @ By student
+      exit(f->esp); // @ By student
       // thread_exit();
    }
 }

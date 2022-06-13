@@ -5,12 +5,14 @@
 #include <list.h>
 #include <stdint.h>
 
+/* Additional code by student */
 #define USERPROG
 #define VM
 
 #ifdef VM
 #include "vm/page.h"
 #endif
+/* End */
 
 /* States in a thread's life cycle. */
 enum thread_status
