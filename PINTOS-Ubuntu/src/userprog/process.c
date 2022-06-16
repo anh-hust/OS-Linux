@@ -19,12 +19,15 @@
 #include "threads/malloc.h"
 #include "threads/thread.h"
 #include "threads/vaddr.h"
+#include "vm/frame.h"
+#include "vm/page.h"
 
 #define VM
 
 #ifdef VM
-#include "vm/page.h"
-#include "vm/frame.h"
+// alternative of vm-related functions introduced in Project 3
+#define vm_frame_allocate(x, y) palloc_get_page(x)
+#define vm_frame_free(x) palloc_free_page(x)
 #endif
 
 static thread_func start_process NO_RETURN;
@@ -184,9 +187,9 @@ start_process(void *file_name_)
   if (!success)
     /* Additional code by student */
     /* print which thread is failed to load: exit(-1) */
-    exit(if_.esp);
-    // thread_exit();
-    /* End */
+    exit(-1);
+  // thread_exit();
+  /* End */
 
   /* Start the user process by simulating a return from an
      interrupt, implemented by intr_exit (in
@@ -343,6 +346,10 @@ bool load(const char *file_name, void (**eip)(void), void **esp)
 
   /* Allocate and activate page directory. */
   t->pagedir = pagedir_create();
+#ifdef VM
+  t->supt = vm_supt_create();
+#endif
+
   if (t->pagedir == NULL)
     goto done;
   process_activate();
@@ -534,7 +541,8 @@ load_segment(struct file *file, off_t ofs, uint8_t *upage,
     /* Load this page. */
     if (file_read(file, kpage, page_read_bytes) != (int)page_read_bytes)
     {
-      palloc_free_page(kpage);
+      // palloc_free_page(kpage);
+      vm_frame_free (kpage);
       return false;
     }
     memset(kpage + page_read_bytes, 0, page_zero_bytes);
@@ -542,7 +550,8 @@ load_segment(struct file *file, off_t ofs, uint8_t *upage,
     /* Add the page to the process's address space. */
     if (!install_page(upage, kpage, writable))
     {
-      palloc_free_page(kpage);
+      // palloc_free_page(kpage);
+      vm_frame_free (kpage);
       return false;
     }
 #endif
@@ -574,7 +583,8 @@ setup_stack(void **esp)
     if (success)
       *esp = PHYS_BASE - 12; // @By student, follow manual Pintos reference
     else
-      palloc_free_page(kpage);
+      // palloc_free_page(kpage);
+      vm_frame_free (kpage);
   }
   return success;
 }
@@ -589,11 +599,17 @@ setup_stack(void **esp)
    Returns true on success, false if UPAGE is already mapped or
    if memory allocation fails. */
 static bool
-install_page(void *upage, void *kpage, bool writable)
+install_page (void *upage, void *kpage, bool writable)
 {
-  struct thread *t = thread_current();
+  struct thread *t = thread_current ();
 
   /* Verify that there's not already a page at that virtual
      address, then map our page there. */
-  return (pagedir_get_page(t->pagedir, upage) == NULL && pagedir_set_page(t->pagedir, upage, kpage, writable));
+  bool success = (pagedir_get_page (t->pagedir, upage) == NULL);
+  success = success && pagedir_set_page (t->pagedir, upage, kpage, writable);
+#ifdef VM
+  success = success && vm_supt_install_frame (t->supt, upage, kpage);
+  if(success) vm_frame_unpin(kpage);
+#endif
+  return success;
 }

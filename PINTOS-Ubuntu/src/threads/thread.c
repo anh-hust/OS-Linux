@@ -13,7 +13,6 @@
 #include "threads/vaddr.h"
 
 #define USERPROG
-#define VM
 
 #ifdef USERPROG
 #include "userprog/process.h"

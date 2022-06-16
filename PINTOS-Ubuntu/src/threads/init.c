@@ -25,6 +25,12 @@
 
 #define USERPROG
 #define FILESYS
+#define VM
+
+#ifdef VM
+#include "vm/frame.h"
+#include "vm/swap.h"
+#endif
 
 #ifdef USERPROG
 #include "userprog/process.h"
@@ -103,6 +109,11 @@ main (void)
   malloc_init ();
   paging_init ();
 
+#ifdef VM
+  /* Initialize Virtual memory system. (Project 3) */
+  vm_frame_init();
+#endif
+
   /* Segmentation. */
 #ifdef USERPROG
   tss_init ();
@@ -129,6 +140,10 @@ main (void)
   ide_init ();
   locate_block_devices ();
   filesys_init (format_filesys);
+#endif
+
+#ifdef VM
+  vm_swap_init ();
 #endif
 
   printf ("Boot complete.\n");

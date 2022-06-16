@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Sun Jun 12 11:04:10 2022
+# Make data base, printed on Wed Jun 15 00:04:27 2022
 
 # Variables
 
@@ -49,7 +49,7 @@ VTE_VERSION = 6003
 # environment
 VSCODE_NLS_CONFIG = {"locale":"en-us","availableLanguages":{},"_languagePackSupport":true}
 # environment
-JOURNAL_STREAM = 8:51485
+JOURNAL_STREAM = 8:51413
 # environment
 XDG_CONFIG_DIRS = /etc/xdg/xdg-ubuntu:/etc/xdg
 # environment
@@ -73,25 +73,25 @@ DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-MANAGERPID = 1799
+MANAGERPID = 1772
 # environment
 LESSOPEN = | /usr/bin/lesspipe %s
 # environment
 LC_NAME = vi_VN
 # environment
-VSCODE_CWD = /home/anht/PINTOS-Ubuntu/src
+VSCODE_CWD = /home/anht/PINTOS-Ubuntu/src/userprog/build
 # environment
 GSETTINGS_SCHEMA_DIR = /snap/code/98/usr/share/glib-2.0/schemas
 # default
 MAKE_HOST := x86_64-pc-linux-gnu
 # environment
-PATH = /home/anht/PINTOS-Ubuntu/src/utils:/home/anht/anaconda3/bin:/home/anht/anaconda3/condabin:/home/anht/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+PATH = /home/anht/PINTOS-Ubuntu/src/utils:/home/anht/Github/OS-Linux/PINTOS-Ubuntu/src/utils:/home/anht/Github/OS-Linux/PINTOS-Ubuntu/src/utils:/home/anht/Downloads/PINTOS_samples/pintos-wookayin/src/utils:/home/anht/Downloads/PINTOS_samples/pintos-wookayin/src/utils:/home/anht/PINTOS-Ubuntu/src/utils:/home/anht/anaconda3/bin:/home/anht/anaconda3/condabin:/home/anht/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
 # environment
 GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
 # environment
 LSCOLORS = Gxfxcxdxbxegedabagacad
 # environment
-SESSION_MANAGER = local/anht:@/tmp/.ICE-unix/2024,unix/anht:/tmp/.ICE-unix/2024
+SESSION_MANAGER = local/anht:@/tmp/.ICE-unix/1988,unix/anht:/tmp/.ICE-unix/1988
 # environment
 XDG_RUNTIME_DIR = /run/user/1000
 # environment
@@ -111,7 +111,7 @@ DISABLE_WAYLAND = 1
 # environment
 ELECTRON_RUN_AS_NODE = 1
 # environment
-INVOCATION_ID = cf2309b7fb6f423990f882a0f42c1363
+INVOCATION_ID = b26c58079df74a5b8b307aed8a41e4ab
 # environment
 GDK_PIXBUF_MODULEDIR = /snap/code/98/usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders
 # makefile (from 'Makefile', line 1)
@@ -143,7 +143,7 @@ PWD = /home/anht/PINTOS-Ubuntu/src
 # default
 .LOADED := 
 # environment
-SSH_AGENT_PID = 1981
+SSH_AGENT_PID = 1950
 # environment
 ORIGINAL_XDG_CURRENT_DESKTOP = ubuntu:GNOME
 # environment
@@ -203,7 +203,7 @@ SHLVL = 1
 # environment
 GNOME_SHELL_SESSION_MODE = ubuntu
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-020bc85c-4a08-4c9f-aef8-ca1eb89146d3.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-d237f7bb-2e63-44cf-a32d-6fd5d7e2c18f.sock
 # default
 MAKE_VERSION := 4.2.1
 # environment
@@ -227,7 +227,7 @@ CONDA_SHLVL = 1
 # default
 MAKE_COMMAND := make
 # environment
-OLDPWD = /home/anht
+OLDPWD = /home/anht/PINTOS-Ubuntu/src/utils
 # default
 .VARIABLES := 
 # automatic
@@ -271,11 +271,11 @@ LC_ALL = C
 # environment
 CONDA_PYTHON_EXE = /home/anht/anaconda3/bin/python
 # environment
-GNOME_TERMINAL_SCREEN = /org/gnome/Terminal/screen/d08a87a3_8390_4e6e_9b2b_c1acdf479ed8
+GNOME_TERMINAL_SCREEN = /org/gnome/Terminal/screen/29c4ea07_c98a_4b73_aaaf_179466b5c132
 # automatic
 ^F = $(notdir $^)
 # environment
-GNOME_TERMINAL_SERVICE = :1.78
+GNOME_TERMINAL_SERVICE = :1.82
 # default
 SUFFIXES := 
 # environment
@@ -289,7 +289,6 @@ WINDOWPATH = 2
 # default
 .INCLUDE_DIRS = /usr/include /usr/local/include /usr/include
 # environment
- 
 LC_IDENTIFICATION = vi_VN
 # default
 .RECIPEPREFIX := 
@@ -298,9 +297,10 @@ LC_ADDRESS = vi_VN
 # environment
 LANG = C
 # environment
+ 
 TERM = xterm-256color
 # environment
-VSCODE_PID = 6194
+VSCODE_PID = 7513
 # environment
 _CE_CONDA = 
 # variable set hash-table stats:
@@ -312,9 +312,9 @@ _CE_CONDA =
 
 # Directories
 
-# . (device 2054, inode 944914): 20 files, no impossibilities.
+# . (device 2054, inode 3015649): 19 files, no impossibilities.
 
-# 20 files, no impossibilities in 1 directories.
+# 19 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -374,7 +374,7 @@ tags::
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-04-28 14:31:34.344416395
+#  Last modified 2022-06-14 23:52:14.444091564
 #  File has been updated.
 #  Successfully updated.
 
@@ -421,12 +421,12 @@ TAGS::
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 31 / storage = 269 B / avg = 8 B
-# current buf: size = 8162 B / used = 269 B / count = 31 / avg = 8 B
+# strcache buffers: 1 (0) / strings = 30 / storage = 258 B / avg = 8 B
+# current buf: size = 8162 B / used = 258 B / count = 30 / avg = 8 B
 
-# strcache performance: lookups = 46 / hit rate = 32%
+# strcache performance: lookups = 45 / hit rate = 33%
 # hash-table stats:
-# Load=31/8192=0%, Rehash=0, Collisions=1/46=2%
-# Finished Make data base on Sun Jun 12 11:04:10 2022
+# Load=30/8192=0%, Rehash=0, Collisions=1/45=2%
+# Finished Make data base on Wed Jun 15 00:04:27 2022
 
  

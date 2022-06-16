@@ -27,7 +27,7 @@ syscall_handler(struct intr_frame *f UNUSED)
 
 /* Additional code by student */
 void exit (int status){
-    printf("%s: exit(%d)\n\n", thread_name(), status);
+    printf("\n%s: exit(%d)\n\n", thread_name(), status);
     thread_exit ();
 }
 /* End */
