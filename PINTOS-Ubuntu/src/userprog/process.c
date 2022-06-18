@@ -16,22 +16,17 @@
 #include "threads/init.h"
 #include "threads/interrupt.h"
 #include "threads/palloc.h"
-#include "threads/malloc.h"
 #include "threads/thread.h"
 #include "threads/vaddr.h"
-#include "vm/frame.h"
-#include "vm/page.h"
-
-#define VM
 
 #ifdef VM
-// alternative of vm-related functions introduced in Project 3
-#define vm_frame_allocate(x, y) palloc_get_page(x)
-#define vm_frame_free(x) palloc_free_page(x)
+#include "vm/frame.h"
+#include "vm/page.h"
 #endif
 
 static thread_func start_process NO_RETURN;
 static bool load(const char *cmdline, void (**eip)(void), void **esp);
+void push_into_stack(const char *[], int, void **);
 
 /* Starts a new thread running a user program loaded from
    FILENAME.  The new thread may be scheduled (and may even exit)
@@ -40,156 +35,111 @@ static bool load(const char *cmdline, void (**eip)(void), void **esp);
 tid_t process_execute(const char *file_name)
 {
   char *fn_copy;
+  char *command_part; // @@ added by student, for parse file_name into command and argument
+  char *save_ptr;
   tid_t tid;
-  char command_part[128]; // @By student
 
   /* Make a copy of FILE_NAME.
      Otherwise there's a race between the caller and load(). */
   fn_copy = palloc_get_page(0);
   if (fn_copy == NULL)
-    return TID_ERROR;
+    goto fail_execute;
   strlcpy(fn_copy, file_name, PGSIZE);
 
-  /* Additional code by student */
-  parse_file_name(file_name, command_part);
-  // or use avaiable library in <string.h>
-  // command_part = strtok(file_name, " ");
+  /* @@ added by student: save the command line */
+  file_name_global = palloc_get_page(0);
+  if (file_name_global == NULL) // make sure palloc success
+    goto fail_execute;
+  strlcpy(file_name_global, fn_copy, PGSIZE);
+
+  // @@ Added by student: palloc page in user pool
+  command_part = palloc_get_page(0);
+  if (command_part == NULL) // make sure palloc success
+    goto fail_execute;
+  command_part = strtok_r(file_name, " ", &save_ptr); // parse file_name
   /* End */
 
   /* Create a new thread to execute FILE_NAME. */
   // tid = thread_create(file_name, PRI_DEFAULT, start_process, fn_copy);
-  tid = thread_create(command_part, PRI_DEFAULT, start_process, fn_copy); // @By student
+  tid = thread_create(command_part, PRI_DEFAULT, start_process, fn_copy); // @ modified by student
+
   if (tid == TID_ERROR)
-    palloc_free_page(fn_copy);
+    goto fail_execute;
+
   return tid;
+
+/* @@ Added by student: fail execute */
+fail_execute:
+  // if here to avoid fail by lib (palloc free (NULL) error)
+  if (fn_copy)
+    palloc_free_page(fn_copy);
+  if (command_part)
+    palloc_free_page(command_part);
+  if (save_ptr)
+    palloc_free_page(save_ptr);
+
+  return TID_ERROR;
+  /* End */
 }
-
-/* Addition function by student */
-void parse_file_name(char *src, char *dest)
-{
-  int i;
-  strlcpy(dest, src, strlen(src) + 1);
-  for (i = 0; dest[i] != '\0' && dest[i] != ' '; i++)
-    ;
-  dest[i] = '\0';
-}
-
-/* Function to build the stack grow downward as reference */
-void push_into_stack(char *file_name, void **esp)
-{
-  char **argv;
-  int argc;
-  int total_len;
-  char stored_file_name[128];
-  char *token;
-  char *last;
-  int i;
-  int len;
-
-  strlcpy(stored_file_name, file_name, strlen(file_name) + 1);
-  token = strtok_r(stored_file_name, " ", &last);
-  argc = 0;
-
-  // calculate argc
-  while (token != NULL)
-  {
-    argc += 1;
-    token = strtok_r(NULL, " ", &last);
-  }
-  argv = (char **)malloc(sizeof(char *) * argc);
-
-  // store argv
-  strlcpy(stored_file_name, file_name, strlen(file_name) + 1);
-  for (i = 0, token = strtok_r(stored_file_name, " ", &last); i < argc; i++, token = strtok_r(NULL, " ", &last))
-  {
-    len = strlen(token);
-    argv[i] = token;
-  }
-  *esp = (int)*esp & 0xbffffffc;
-  *(int *)*esp = 0;
-
-  // push argv[argc-1] ~ argv[0]
-  total_len = 0;
-  for (i = argc - 1; i >= 0; i--)
-  {
-    len = strlen(argv[i]);
-    *esp -= len + 1;
-    total_len += len + 1;
-    strlcpy(*esp, argv[i], len + 1);
-    argv[i] = *esp;
-  }
-
-  // push word align
-  *esp -= total_len % 4 != 0 ? 4 - (total_len % 4) : 0;
-
-  // push NULL
-  *esp -= 4;
-  **(uint32_t **)esp = 0;
-
-  // push address of argv[argc-1] ~ argv[0]
-  for (i = argc - 1; i >= 0; i--)
-  {
-    *esp -= 4;
-    **(uint32_t **)esp = argv[i];
-  }
-
-  // push address of argv
-  *esp -= 4;
-  **(uint32_t **)esp = *esp + 4;
-
-  // push argc
-  *esp -= 4;
-  **(uint32_t **)esp = argc;
-
-  // push return address
-  *esp -= 4;
-  **(uint32_t **)esp = 0;
-
-  hex_dump(0, *esp, 1000, 1);
-  free(argv);
-}
-/* End */
 
 /* A thread function that loads a user process and starts it
    running. */
 static void
 start_process(void *file_name_)
 {
-  char *file_name = file_name_;
+  char *file_name = (char *)file_name_global;
   struct intr_frame if_;
-  bool success;
+  bool success = false; // @@ added by student: set = false to serve trap purpose
 
-  /* Additional Code by student */
-  char command_part[128];
-  parse_file_name(file_name, command_part); // to parse command part away arg
-  // or use avaiable library in <string.h>
-  // command_part = strtok(file_name, " ");
-  /* End code */
+  /**
+   * @@ Added by student:
+   * Split command line and push all pieces into stack
+   */
+
+  const char **cmd_tokens = (const char **)palloc_get_page(0);
+
+  if (cmd_tokens == NULL)
+  {
+    printf("[Error kernel] Heap is full !!!");
+    goto finish_step;
+  }
+
+  char *token;
+  char *save_ptr; // just for strtok_r
+  int count = 0;
+
+  /* parse and store */
+  token = strtok_r(file_name, " ", &save_ptr);
+  while (token != NULL)
+  {
+    cmd_tokens[count] = token; // store command, option and argument of itself
+    token = strtok_r(NULL, " ", &save_ptr);
+    count++;
+  }
+  /* End */
 
   /* Initialize interrupt frame and load executable. */
   memset(&if_, 0, sizeof if_);
   if_.gs = if_.fs = if_.es = if_.ds = if_.ss = SEL_UDSEG;
   if_.cs = SEL_UCSEG;
   if_.eflags = FLAG_IF | FLAG_MBS;
-  // success = load (file_name, &if_.eip, &if_.esp);      // source
-  success = load(command_part, &if_.eip, &if_.esp); // @ By student
+  success = load(file_name, &if_.eip, &if_.esp);
 
-  /* Additional code by student */
-  /* if success, load file_name into user stack, downward */
+  /**
+   * @@ Added by student: to check if load success of fail
+   * print termination message here via sys_exit(-1); !!!
+   */
   if (success)
-  {
-    push_into_stack(file_name, &if_.esp);
-  }
-  /* End */
+    push_into_stack(cmd_tokens, count, &if_.esp);
+  else
+    goto finish_step;
 
-  /* If load failed, quit. */
-  palloc_free_page(file_name);
-  if (!success)
-    /* Additional code by student */
-    /* print which thread is failed to load: exit(-1) */
-    exit(-1);
-  // thread_exit();
-  /* End */
+finish_step:
+  if (cmd_tokens)
+    palloc_free_page(cmd_tokens);
+  if (file_name)
+    palloc_free_page(file_name);
+  sys_exit(-1);
 
   /* Start the user process by simulating a return from an
      interrupt, implemented by intr_exit (in
@@ -215,11 +165,12 @@ start_process(void *file_name_)
    does nothing. */
 int process_wait(tid_t child_tid UNUSED)
 {
-  /* Additional code by student, follow Pintos reference */
-  int i;
+  /* @@Added by student: "raw" wait to parent pro collect all zombies of it's childs */
+  long int i;
   for (i = 0; i < 1000000000; i++)
-    ;
-  /* End code */
+  {
+    // NULL
+  }
   return -1;
 }
 
@@ -228,6 +179,12 @@ void process_exit(void)
 {
   struct thread *cur = thread_current();
   uint32_t *pd;
+
+// @@@ Added by student: destroy SUPT (all SPTEs, all frame and swap)
+#ifdef VM
+  vm_supt_destroy(cur->supt);
+  cur->supt = NULL;
+#endif
 
   /* Destroy the current process's page directory and switch back
      to the kernel-only page directory. */
@@ -261,6 +218,56 @@ void process_activate(void)
      interrupts. */
   tss_update();
 }
+
+/**
+ * @@ Added by student: to push all command line tokens into stack
+ * (with the right arranged rule in reference)
+ */
+void push_into_stack(const char *cmdline_tokens[], int argc, void **esp)
+{
+  ASSERT(argc >= 0);
+
+  int length_of_token = 0;
+  void *argv_addr[argc];
+
+  // push push push
+  int i;
+  for (i = argc - 1; i >= 0; i--)
+  {
+    length_of_token = strlen(cmdline_tokens[i]) + 1; // + 1 character NULL
+    *esp -= length_of_token;                         // grown downwards as reference
+    memcpy(*esp, cmdline_tokens[i], length_of_token);
+    argv_addr[i] = *esp; // to mark addrress
+  }
+
+  // word align
+  // *esp = (void *)((unsigned int)(*esp) & 0xfffffffc);
+  *esp -= 1;
+
+  // last null: ensure argv[argc] is null, reference
+  *esp -= 4;
+  *((uint32_t *)*esp) = 0;
+
+  // setting **esp with argvs
+  for (i = argc - 1; i >= 0; i--)
+  {
+    *esp -= 4;
+    *((void **)*esp) = argv_addr[i];
+  }
+
+  // setting **argv (addr of stack, esp)
+  *esp -= 4;
+  *((void **)*esp) = (*esp + 4);
+
+  // setting argc
+  *esp -= 4;
+  *((int *)*esp) = argc;
+
+  // setting ret addr (return address)
+  *esp -= 4;
+  *((int *)*esp) = 0;
+}
+/* End */
 
 /* We load ELF binaries.  The following definitions are taken
    from the ELF specification, [ELF1], more-or-less verbatim.  */
@@ -346,6 +353,8 @@ bool load(const char *file_name, void (**eip)(void), void **esp)
 
   /* Allocate and activate page directory. */
   t->pagedir = pagedir_create();
+
+// @@@ Added by student: supt create step
 #ifdef VM
   t->supt = vm_supt_create();
 #endif
@@ -522,17 +531,21 @@ load_segment(struct file *file, off_t ofs, uint8_t *upage,
     size_t page_read_bytes = read_bytes < PGSIZE ? read_bytes : PGSIZE;
     size_t page_zero_bytes = PGSIZE - page_read_bytes;
 
-    /* Add by student */
-
+/**
+ * @@@ Added by student: implement lazy load
+ */
 #ifdef VM
-    /* lazy load */
-    struct thread *current = thread_current();
-    ASSERT(pagedir_get_page(current->pagedir, upage) == NULL); // not be virtual page yet
-    if (!vm_supt_install_filesys(current->supt, upage, file, ofs, page_read_bytes, page_zero_bytes, writable))
+    struct thread *curr = thread_current();
+    ASSERT(pagedir_get_page(curr->pagedir, upage) == NULL); // not virtual page yet
+
+    if (!vm_supt_install_filesys(curr->supt, upage,
+                                 file, ofs, page_read_bytes, page_zero_bytes, writable))
     {
       return false;
     }
+
 #else
+
     /* Get a page of memory. */
     uint8_t *kpage = palloc_get_page(PAL_USER);
     if (kpage == NULL)
@@ -541,8 +554,7 @@ load_segment(struct file *file, off_t ofs, uint8_t *upage,
     /* Load this page. */
     if (file_read(file, kpage, page_read_bytes) != (int)page_read_bytes)
     {
-      // palloc_free_page(kpage);
-      vm_frame_free (kpage);
+      palloc_free_page(kpage);
       return false;
     }
     memset(kpage + page_read_bytes, 0, page_zero_bytes);
@@ -550,21 +562,22 @@ load_segment(struct file *file, off_t ofs, uint8_t *upage,
     /* Add the page to the process's address space. */
     if (!install_page(upage, kpage, writable))
     {
-      // palloc_free_page(kpage);
-      vm_frame_free (kpage);
+      palloc_free_page(kpage);
       return false;
     }
+
 #endif
 
     /* Advance. */
     read_bytes -= page_read_bytes;
     zero_bytes -= page_zero_bytes;
     upage += PGSIZE;
-
-#ifdef VM
-    ofs += PGSIZE;
-#endif
   }
+
+// @@@ Added by student
+#ifdef VM
+  ofs += PGSIZE;
+#endif
   return true;
 }
 
@@ -581,10 +594,9 @@ setup_stack(void **esp)
   {
     success = install_page(((uint8_t *)PHYS_BASE) - PGSIZE, kpage, true);
     if (success)
-      *esp = PHYS_BASE - 12; // @By student, follow manual Pintos reference
+      *esp = PHYS_BASE - 12;
     else
-      // palloc_free_page(kpage);
-      vm_frame_free (kpage);
+      palloc_free_page(kpage);
   }
   return success;
 }
@@ -599,17 +611,18 @@ setup_stack(void **esp)
    Returns true on success, false if UPAGE is already mapped or
    if memory allocation fails. */
 static bool
-install_page (void *upage, void *kpage, bool writable)
+install_page(void *upage, void *kpage, bool writable)
 {
-  struct thread *t = thread_current ();
-
+  struct thread *t = thread_current();
   /* Verify that there's not already a page at that virtual
      address, then map our page there. */
-  bool success = (pagedir_get_page (t->pagedir, upage) == NULL);
-  success = success && pagedir_set_page (t->pagedir, upage, kpage, writable);
+  bool success = (pagedir_get_page(t->pagedir, upage) == NULL);
+  success = success && pagedir_set_page(t->pagedir, upage, kpage, writable);
+
 #ifdef VM
-  success = success && vm_supt_install_frame (t->supt, upage, kpage);
-  if(success) vm_frame_unpin(kpage);
+  success = success && vm_supt_install_frame(t->supt, upage, kpage);
+  if (success)
+    vm_frame_unpin(kpage);
 #endif
   return success;
 }

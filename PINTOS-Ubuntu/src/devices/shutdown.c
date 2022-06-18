@@ -6,9 +6,6 @@
 #include "devices/timer.h"
 #include "threads/io.h"
 #include "threads/thread.h"
-
-#define USERPROG
-
 #ifdef USERPROG
 #include "userprog/exception.h"
 #endif

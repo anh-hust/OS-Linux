@@ -1,10 +1,8 @@
 #ifndef USERPROG_SYSCALL_H
 #define USERPROG_SYSCALL_H
 
-void syscall_init (void);
-
-/* Addtional code by student */
-void exit(int);
-/* End */
+// System call to exit terminated process
+void syscall_init(void);
+void sys_exit(int);
 
 #endif /* userprog/syscall.h */

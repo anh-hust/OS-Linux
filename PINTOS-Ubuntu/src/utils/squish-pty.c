@@ -7,8 +7,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+// #include <stropts.h>
 #include <sys/ioctl.h>
-//#include <stropts.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -257,7 +257,7 @@ main (int argc __attribute__ ((unused)), char *argv[])
   int pipe_fds[2];
   struct itimerval zero_itimerval, old_itimerval;
 
- if (argc < 2) 
+  if (argc < 2) 
     {
       fprintf (stderr,
                "usage: squish-pty COMMAND [ARG]...\n"
@@ -284,13 +284,13 @@ main (int argc __attribute__ ((unused)), char *argv[])
     fail_io ("open \"%s\"", name);
 
   /* System V implementations need STREAMS configuration for the
-      slave. */
-   /*if (isastream (slave))
-     {
-       if (ioctl (slave, I_PUSH, "ptem") < 0
-           || ioctl (slave, I_PUSH, "ldterm") < 0)
-         fail_io ("ioctl");
-     } */ 
+     slave. */
+  // if (isastream (slave))
+  //   {
+  //     if (ioctl (slave, I_PUSH, "ptem") < 0
+  //         || ioctl (slave, I_PUSH, "ldterm") < 0)
+  //       fail_io ("ioctl");
+  //   }
 
   /* Arrange to get notified when a child dies, by writing a byte
      to a pipe fd.  We really want to use pselect() and

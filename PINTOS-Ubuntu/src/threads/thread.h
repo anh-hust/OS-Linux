@@ -5,14 +5,9 @@
 #include <list.h>
 #include <stdint.h>
 
-/* Additional code by student */
-#define USERPROG
-#define VM
-
 #ifdef VM
 #include "vm/page.h"
 #endif
-/* End */
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -25,7 +20,7 @@ enum thread_status
 
 /* Thread identifier type.
    You can redefine this to whatever type you like. */
-typedef int tid_t;            // tid_t just int data type @Note by student
+typedef int tid_t;
 #define TID_ERROR ((tid_t)-1) /* Error value for tid_t. */
 
 /* Thread priorities. */
@@ -101,17 +96,14 @@ struct thread
 
    /* Shared between thread.c and synch.c. */
    struct list_elem elem; /* List element. */
-   
-   uint8_t current_esp; // @By student   
 
 #ifdef USERPROG
    /* Owned by userprog/process.c. */
    uint32_t *pagedir; /* Page directory. */
-   int exit_status;   /*exit code for process termination @By student*/
 #endif
 
 #ifdef VM
-   struct supplemental_page_table *supt; // @ By student
+struct supplemental_page_table *supt;
 #endif
 
    /* Owned by thread.c. */

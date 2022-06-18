@@ -6,8 +6,7 @@
 static struct block *swap_block;
 static struct bitmap *swap_available;
 
-static const size_t SECTORS_PER_PAGE = PGSIZE / BLOCK_SECTOR_SIZE; // BLOCK_SECTOR_SIZE = 512
-                                      //  4096/512 = 8
+static const size_t SECTORS_PER_PAGE = PGSIZE / BLOCK_SECTOR_SIZE;
 
 // the number of possible (swapped) pages.
 static size_t swap_size;
@@ -15,7 +14,7 @@ static size_t swap_size;
 void
 vm_swap_init ()
 {
-  ASSERT (SECTORS_PER_PAGE > 0); 
+  ASSERT (SECTORS_PER_PAGE > 0); // 4096/512 = 8?
 
   // Initialize the swap disk
   swap_block = block_get_role(BLOCK_SWAP);
@@ -29,7 +28,7 @@ vm_swap_init ()
   // which consists of contiguous [SECTORS_PER_PAGE] sectors,
   // their total size being equal to PGSIZE.
   swap_size = block_size(swap_block) / SECTORS_PER_PAGE;
-  swap_available = bitmap_create(swap_size); // By student: create a bitmap equal size of swap
+  swap_available = bitmap_create(swap_size);
   bitmap_set_all(swap_available, true);
 }
 
@@ -50,7 +49,7 @@ swap_index_t vm_swap_out (void *page)
         );
   }
 
-  // occupy the slot: available becomes false (implement bitmap_reset())
+  // occupy the slot: available becomes false
   bitmap_set(swap_available, swap_index, false);
   return swap_index;
 }

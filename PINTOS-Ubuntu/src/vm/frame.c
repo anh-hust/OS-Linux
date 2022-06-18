@@ -10,7 +10,6 @@
 #include "threads/palloc.h"
 #include "userprog/pagedir.h"
 #include "threads/vaddr.h"
-#include "vm/swap.h"
 
 
 /* A global lock, to ensure critical sections on frame operations. */

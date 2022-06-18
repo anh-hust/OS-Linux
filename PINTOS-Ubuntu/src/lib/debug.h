@@ -4,9 +4,7 @@
 /* GCC lets us add "attributes" to functions, function
    parameters, etc. to indicate their properties.
    See the GCC manual for details. */
-/* __attribute__((unused)) tell compiler don't warns if a varibale not reference yet @Note by student */
-#define UNUSED __attribute__ ((unused)) 
-/* noreturn: indicates that the function doesn't return, function only declares */
+#define UNUSED __attribute__ ((unused))
 #define NO_RETURN __attribute__ ((noreturn))
 #define NO_INLINE __attribute__ ((noinline))
 #define PRINTF_FORMAT(FMT, FIRST) __attribute__ ((format (printf, FMT, FIRST)))

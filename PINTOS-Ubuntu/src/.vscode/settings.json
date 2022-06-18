@@ -1,9 +1,0 @@
-{
-    "C_Cpp.errorSquiggles": "Disabled",
-    "C_Cpp.dimInactiveRegions": true,
-    "files.associations": {
-        "hash.h": "c",
-        "process.h": "c"
-    },
-    "C_Cpp.intelliSenseEngineFallback": "Enabled"
-}
